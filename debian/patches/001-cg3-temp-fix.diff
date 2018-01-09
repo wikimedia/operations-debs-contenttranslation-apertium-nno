@@ -1,0 +1,14 @@
+Description: Temporary fix for FTBFS with latest CG-3
+diff --git a/apertium-nno.nno.rlx b/apertium-nno.nno.rlx
+index 032c32d..8f227c1 100644
+--- a/apertium-nno.nno.rlx
++++ b/apertium-nno.nno.rlx
+@@ -6987,7 +6987,7 @@ REMOVE:mwe-verb-unlikely-adj ("<.* .*>"r adj pp); # e.g. «førte_til brannar»
+ 
+ #:6072
+  "<vita>"   REMOVE:6072   (n nt) IF
+-	 (O inf)
++	 (0 inf)
+ ;
+ #sjeldent i fleirtal - og eintal
+ 
