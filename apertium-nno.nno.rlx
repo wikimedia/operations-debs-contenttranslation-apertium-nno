@@ -5,8 +5,32 @@
 SOFT-DELIMITERS = "<,>" cm ;
 DELIMITERS = "<.>" "<:>" "<!>" "<?>" "<|>" "<$.>" "<$:>" "<$!>" "<$?>" "<$|>" sent ;
 
+LIST GENDER = m f nt mf;
 LIST NUMBER = sg pl sp;
 
+# Apertium tagset:
+LIST vblex = vblex ;
+LIST pr = pr ;
+LIST prn = prn ;
+LIST det = det ;
+LIST expl = expl ;
+LIST ind = ind ;
+LIST def = def ;
+LIST nt = nt ;
+LIST f = f ;
+LIST m = m ;
+LIST n = n ;
+LIST pl = pl ;
+LIST sg = sg ;
+LIST sp = sp ;
+# TODO: pos defined and used as "pst" below, fix
+# LIST pos = pos ;
+LIST guess = guess ;
+LIST cmp = cmp ;
+LIST pret = pret ;
+LIST pp = pp ;
+
+# OBT sets converted to Apertium:
 LIST sp = sp ;
 LIST %-vis% = ".*vis"r ;
 LIST %-avis% = ".*avis"r ".*vise"r ;
@@ -448,6 +472,7 @@ LIST ikkje-adv-adj-prep = "$," "," det vblex prn cnjsub cnjcoo "å" ij n np <ell
 LIST ikkje-adv-adj-prep-det = "$," "," vblex prn cnjsub cnjcoo "å" ij n np <ellipse> ;
 LIST ikkje-adv-adj-subst = "sidan"  "$:" ":" "$--" "--" "$-" "-" "$," "," lpar rpar vblex pr prn cnjsub cnjcoo "å" ij det <<< <ellipse> ;
 LIST ikkje-adv-adj-subst-det-prep = "$-" "-" "$," "," vblex prn cnjsub cnjcoo "å" ij <<< <ellipse> ;
+LIST ikkje-adv-adj-subst-det-prep-strek = "$," "," vblex prn cnjsub cnjcoo "å" ij <<< <ellipse> ;
 LIST ikkje-adv-adj-subst-det-prep-verb = "$-" "-" "$," "," prn cnjsub cnjcoo "å" ij <<< <ellipse> ;
 LIST ikkje-adv-adj-subst-pron-det = "sidan"  cnjcoo pr cnjsub "å" ij <ellipse> (vblex pres) (vblex pret) (det dem) (n gen) (np gen) ("$," clb) ("," clb) ;
 LIST ikkje-adv-adj-subst-pron-konj-det = "sidan"  pr cnjsub "å" ij <ellipse> (vblex pres) (vblex pret) (det dem) (n gen) (np gen) ("$," clb) ("," clb) (clb cnjcoo) ;
@@ -625,7 +650,7 @@ LIST present-ub = "eit"  "ein"  "ei"  (n ind) (np ind) ;
 LIST present-verb = "vere"  "stå"  "liggje"  "kome"  "hengje"  "henge"  ;
 LIST pret = pret ;
 LIST pron = prn ;
-LIST pron-akk = "seg"  (prn p1 pl acc) (prn p2 pl acc) (prn p3 pl acc) ;
+LIST pron-akk = (prn acc) ;
 LIST pron-akk-fl = ("vi"  acc) ("me"  acc) ("dei"  acc) ("de"  acc) ("desse"  prn) ;
 LIST pron-akk-mask/fem = ("De" acc) ("hen"  acc) ("han"  acc) ("eg"  acc) ("ho"  acc) ("du"  acc) ("den" prn mf) ("denne"  prn) ;
 LIST pron-akk-mfn/fl = "seg"  ("De" acc) ("hen"  acc) ("han"  acc) ("eg"  acc) ("ho"  acc) ("du"  acc) ("den" prn mf) ("denne"  prn) ("vi"  acc) ("me"  acc) ("de"  acc) ("dykk"  acc) ("desse"  prn) ("den" prn nt) ("denne"  prn nt) ;
@@ -1306,6 +1331,7 @@ CONSTRAINTS
 	(1 prep)
 ;
 
+ "<elv>"   SELECT:unlikely-alv f ;
 
 #:4874
  "<faen>"   SELECT:4874   (ij) IF
@@ -6987,7 +7013,7 @@ REMOVE:mwe-verb-unlikely-adj ("<.* .*>"r adj pp); # e.g. «førte_til brannar» 
 
 #:6072
  "<vita>"   REMOVE:6072   (n nt) IF
-	 (O inf)
+	 (0 inf)
 ;
 #sjeldent i fleirtal - og eintal
 
@@ -12515,6 +12541,7 @@ SELECT:3733 (adj pst nt ind sg) IF
 
 
 #:3734
+
 SELECT:3734 (adj pst nt ind sg) IF
 	(NOT 0 farlege-adj)
 	(*-1 nr2-det-nøyt-ub BARRIER ikkje-adv-adj)
@@ -42481,6 +42508,8 @@ SELECT:6141 (vblex) IF
 
 REMOVE:prefer-ungen-prop prop + gen IF (0 prop - gen);
 
+REMOVE:unlikely ("øre") + vblex;
+
 #:6170
 REMOVE:6170 (subst gen) IF
 	(0 %-kurs%)
@@ -46975,9 +47004,9 @@ REMOVE:1809 (prn acc) IF
 
 
 #:1810
-REMOVE:1810 (prn acc) IF
+REMOVE:1810 pron-akk IF
 	(0 nominativ)
-	(-1C sbu)
+	(-1C sbu OR >>>)
 	(NOT -1 %at%)
 ;
 
@@ -49853,6 +49882,17 @@ CONSTRAINTS
 CONSTRAINTS
 ## select ndomain heur
 
+SELECT:10-menneske $$NUMBER IF
+        (-1C det + $$NUMBER)
+        (0C subst-nøyt)
+        ;
+
+SELECT:eit-viktig-område $$NUMBER IF
+        (-2C det + $$NUMBER)
+        (-1C adj + nøyt + ub + $$NUMBER)
+        (0C subst-nøyt)
+        ;
+
 
 
 #:6158
@@ -52053,6 +52093,7 @@ SELECT:har-blitt-oppretta perf-part IF
         (*-1 %ha%-pres/pret)
         (-1C perf-part)
         (0C adj OR verb)
+        ;
 
 #CONSTRAINTS
 ## remove ndomain heur
@@ -52809,6 +52850,12 @@ REMOVE:6033 subst-nøyt-eint IF
 #Koster for mye
 
 
+SELECT:då-fekk-han (prn nom) IF
+	(*-2 prep CBARRIER ikkje-adv-adj-subst-det-prep-strek LINK -1 >>>)
+	(-1 fv)
+;
+
+
 #:6035
 REMOVE:6035 (vblex pres) IF
 	(0 farlege-verb)
@@ -52857,3 +52904,14 @@ REMOVE:rel-ellipse (n) IF
 	(1 prep LINK *1 subst/pron BARRIER ikkje-adv-adj-subst-pron-det)
 ;
 # «ein ny verdsorden grunna<perf-part> på andelege prinsipp»
+
+SELECT:nå-er-anlegget-gravminne $$NUMBER IF
+        (-3C adv)
+        (-2C kop-fv)
+        (-1C subst + $$NUMBER + $$GENDER + bu)
+        (0C subst + $$GENDER)
+        ;
+
+LIST målingpå = "hus" "vegg" "graffiti" "strek" "bilde" "bilete" ;
+SELECT ("måle¹") IF (1 målingpå) ;
+REMOVE ("måle¹") ;
