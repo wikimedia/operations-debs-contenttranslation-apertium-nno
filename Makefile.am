@@ -2,8 +2,6 @@
 ## Makefile for apertium-nno
 ###############################################################################
 
-RELEASE=0.9
-VERSION=0.9.0
 LANG1=nno
 LANG1e=nno_e
 LANG1a=nno_a
@@ -11,6 +9,7 @@ BASENAME=apertium-$(LANG1)
 
 TARGETS_COMMON = $(LANG1).automorf.bin \
 	$(LANG1).autogen.bin $(LANG1e).autogen.bin \
+	$(LANG1).autopgen.bin \
 	$(LANG1).automorf.att.gz $(LANG1).autogen.att.gz \
 	$(LANG1).rlx.bin \
 	$(LANG1).syn.rlx.bin
@@ -31,6 +30,7 @@ $(LANG1).autogen.bin: $(BASENAME).$(LANG1).dix
 
 $(LANG1e).autogen.bin: $(BASENAME).$(LANG1).dix
 	apertium-validate-dictionary $<
+	test ! -f ./test-scandivoc || ./test-scandivoc
 	lt-comp --alt $(LANG1e) rl $< $@
 
 $(LANG1).automorf.bin: $(BASENAME).$(LANG1).dix
@@ -50,6 +50,9 @@ $(LANG1e).autogen.att.gz: $(LANG1e).autogen.bin
 $(LANG1).automorf.att.gz: $(LANG1).automorf.bin
 	lt-print $< | gzip -9 -c -n > $@
 
+$(LANG1).autopgen.bin: $(BASENAME).post-$(LANG1).dix
+	lt-comp lr $< $@
+
 ###############################################################################
 ## Disambiguation rules
 ###############################################################################
@@ -64,6 +67,7 @@ $(LANG1).syn.rlx.bin: $(BASENAME).$(LANG1).syn.rlx $(CGCOMP)
 ## Distribution
 ###############################################################################
 EXTRA_DIST=$(BASENAME).$(LANG1).dix \
+           $(BASENAME).post-$(LANG1).dix \
 	   $(BASENAME).$(LANG1).rlx \
 	   $(BASENAME).$(LANG1).syn.rlx \
            $(LANG1).prob            \
@@ -87,7 +91,7 @@ pkgconfig_DATA = $(BASENAME).pc
 
 noinst_DATA=modes/$(LANG1)-morph.mode
 
-install-data-local:
+install-data-local: install-modes
 	test -d $(DESTDIR)$(apertium_nno_srcdir) || mkdir -p $(DESTDIR)$(apertium_nno_srcdir)
 	$(INSTALL_DATA) $(BASENAME).$(LANG1).dix $(DESTDIR)$(apertium_nno_srcdir)
 	$(INSTALL_DATA) $(BASENAME).$(LANG1).rlx $(DESTDIR)$(apertium_nno_srcdir)
